@@ -1,54 +1,56 @@
 Citizen.CreateThread(function()
     for _, npcData in pairs(Config.NPCs) do
+        -- Request the NPC model
         RequestModel(GetHashKey(npcData.model))
         while not HasModelLoaded(GetHashKey(npcData.model)) do
             Citizen.Wait(100)
         end
 
+        -- Create the NPC at the specified coordinates
         local ped = CreatePed(4, GetHashKey(npcData.model), npcData.coords.x, npcData.coords.y, npcData.coords.z - 1.0,
             npcData.coords.w, false, true)
 
-        -- Configuración del NPC
+        -- NPC Configuration
         SetEntityInvincible(ped, true)
         SetBlockingOfNonTemporaryEvents(ped, true)
         FreezeEntityPosition(ped, true)
 
-        -- Asignar animación
+        -- Assign animation
         if npcData.animation then
             TaskStartScenarioInPlace(ped, npcData.animation, 0, true)
         end
 
-        -- Mostrar texto 3D sobre el NPC
+        -- Display 3D text above the NPC
         Citizen.CreateThread(function()
             while true do
-                local optimizado = 1000
+                local optimized = 1000
                 local playerCoords = GetEntityCoords(PlayerPedId())
                 local npcCoords = GetEntityCoords(ped)
                 local distance = #(playerCoords - npcCoords)
 
-                -- Mostrar texto 3D si está dentro de la distancia
+                -- Show 3D text if within distance
                 if distance < Config.TextDistance then
                     Draw3DText(npcCoords.x, npcCoords.y, npcCoords.z + 1.1, npcData.displayedText, Config.TextColor)
-                    optimizado = 0
+                    optimized = 0
                 end
 
-                -- Comprobar si el jugador está dentro de la distancia de acción
+                -- Check if the player is within action distance
                 if distance < Config.ActionDistance then
-                    -- Comprobar si el jugador presiona la tecla E (38)
-                    if IsControlJustPressed(0, 38) then -- 38 es el código para la tecla E
+                    -- Check if the player presses the E key (38)
+                    if IsControlJustPressed(0, 38) then -- 38 is the code for the E key
                         if npcData.actionFunction then
-                            _G[npcData.actionFunction](ped)  -- Llamamos la función que esté configurada
+                            _G[npcData.actionFunction](ped) -- Call the configured function
                         end
                     end
                 end
 
-                Citizen.Wait(optimizado)
+                Citizen.Wait(optimized)
             end
         end)
     end
 end)
 
--- Función para dibujar texto 3D
+-- Function to draw 3D text
 function Draw3DText(x, y, z, text, color)
     local onScreen, _x, _y = World3dToScreen2d(x, y, z)
     local camCoords = GetGameplayCamCoords()
@@ -75,16 +77,21 @@ function Draw3DText(x, y, z, text, color)
     end
 end
 
--- Función personalizada para el primer NPC
+-- Custom function for the first NPC
 function npcAction1(ped)
-    print("¡Estás cerca del NPC Guardaespaldas y presionaste E!")
-    -- Aquí puedes agregar la lógica para el NPC1
-    -- Por ejemplo, podrías hacer que el NPC diga algo o interactúe de alguna manera
+    print("You are near the Bodyguard NPC and pressed E!")
+    -- Add logic for NPC1 here
+    -- For example, the NPC could say something or interact in some way
 end
 
--- Función personalizada para el segundo NPC
+-- Custom function for the second NPC
 function npcAction2(ped)
-    print("¡Estás cerca del NPC Vendedor y presionaste E!")
-    -- Aquí puedes agregar la lógica para el NPC2
-    -- Por ejemplo, podrías abrir un menú, vender un objeto, etc.
+    print("You are near the Vendor NPC and pressed E!")
+    -- Add logic for NPC2 here
+    -- For example, open a menu, sell an item, etc.
+end
+
+-- Function that does nothing
+function nothing(ped)
+    -- No action is performed
 end
